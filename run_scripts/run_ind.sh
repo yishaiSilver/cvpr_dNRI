@@ -23,10 +23,15 @@ do
 
     EVAL_ARGS="--train_data_len 100 --batch_size 1 --max_burn_in_count 2 --verbose --error_out_name prediction_errors_burnin2.npy --load_best_model"
     CUDA_VISIBLE_DEVICES=$GPU python -u dnri/experiments/ind_experiment.py --gpu --mode eval --data_path $DATA_PATH --working_dir $WORKING_DIR $MODEL_ARGS $EVAL_ARGS |& tee "${WORKING_DIR}eval_results_last_driver2burnin.txt"
-    EVAL_ARGS="--train_data_len 100 --batch_size 1 --max_burn_in_count 2 --verbose --final_test --error_out_name test_prediction_errors_burnin2.npy --load_best_model"
-    CUDA_VISIBLE_DEVICES=$GPU python -u dnri/experiments/ind_experiment.py --gpu --mode eval --data_path $DATA_PATH --working_dir $WORKING_DIR $MODEL_ARGS $EVAL_ARGS |& tee "${WORKING_DIR}eval_results_test_last_driver2burnin.txt"
-    EVAL_ARGS="--train_data_len 100 --batch_size 1 --max_burn_in_count 5 --verbose --final_test --error_out_name test_prediction_errors_burnin5.npy --load_best_model"
-    CUDA_VISIBLE_DEVICES=$GPU python -u dnri/experiments/ind_experiment.py --gpu --mode eval --data_path $DATA_PATH --working_dir $WORKING_DIR $MODEL_ARGS $EVAL_ARGS |& tee "${WORKING_DIR}eval_results_test_last_driver5burnin.txt"
+    #EVAL_ARGS="--train_data_len 100 --batch_size 1 --max_burn_in_count 2 --verbose --final_test --error_out_name test_prediction_errors_burnin2.npy --load_best_model"
+    #CUDA_VISIBLE_DEVICES=$GPU python -u dnri/experiments/ind_experiment.py --gpu --mode eval --data_path $DATA_PATH --working_dir $WORKING_DIR $MODEL_ARGS $EVAL_ARGS |& tee "${WORKING_DIR}eval_results_test_last_driver2burnin.txt"
+    #EVAL_ARGS="--train_data_len 100 --batch_size 1 --max_burn_in_count 5 --verbose --final_test --error_out_name test_prediction_errors_burnin5.npy --load_best_model"
+    #CUDA_VISIBLE_DEVICES=$GPU python -u dnri/experiments/ind_experiment.py --gpu --mode eval --data_path $DATA_PATH --working_dir $WORKING_DIR $MODEL_ARGS $EVAL_ARGS |& tee "${WORKING_DIR}eval_results_test_last_driver5burnin.txt"
+
+    EVAL_ARGS="--train_data_len 100 --batch_size 1 --max_burn_in_count 2 --verbose --test_short_sequences --final_test --error_out_name test_prediction_errors_shortseq_burnin2.npy --load_best_model"
+    CUDA_VISIBLE_DEVICES=$GPU python -u dnri/experiments/ind_experiment.py --gpu --mode eval --data_path $DATA_PATH --working_dir $WORKING_DIR $MODEL_ARGS $EVAL_ARGS |& tee "${WORKING_DIR}eval_results_test_shortseq_driver2burnin.txt"
+    EVAL_ARGS="--train_data_len 100 --batch_size 1 --max_burn_in_count 5 --verbose --test_short_sequences --final_test --error_out_name test_prediction_errors_shortseq_burnin5.npy --load_best_model"
+    CUDA_VISIBLE_DEVICES=$GPU python -u dnri/experiments/ind_experiment.py --gpu --mode eval --data_path $DATA_PATH --working_dir $WORKING_DIR $MODEL_ARGS $EVAL_ARGS |& tee "${WORKING_DIR}eval_results_test_shortseq_driver5burnin.txt"
 
 
 
