@@ -18,7 +18,7 @@ Datasets:
 - Motion Capture: the datasets can be downloaded from http://mocap.cs.cmu.edu/search.php?subjectnumber=118 
   and http://mocap.cs.cmu.edu/search.php?subjectnumber=35. For subject 35, you need trials 1-16 and 28-34.
   For subject 118, you need trials 1-30.
-- Basketball: The data can be accessed here: https://github.com/ezhan94/multiagent-programmatic-supervision
+- Basketball: The original data can be accessed here: https://github.com/ezhan94/multiagent-programmatic-supervision. Some preprocessing has been done to get it used into the form used by this code; for convenience, these files can be found [here](https://drive.google.com/file/d/1x4243T1TOymrvTJKV5D7S2pQFS-mSwxf/view?usp=sharing).
 - InD: Data must be requested from here: https://www.ind-dataset.com/
 - Synth: this code includes the synth data, as well as code used to generate it.
 
