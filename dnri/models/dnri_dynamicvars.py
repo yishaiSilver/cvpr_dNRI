@@ -37,6 +37,7 @@ class DNRI_DynamicVars(nn.Module):
         self.anneal_teacher_forcing = params.get('anneal_teacher_forcing', False)
         self.teacher_forcing_prior = params.get('teacher_forcing_prior', False)
         self.steps = 0
+        self.gpu = params.get('gpu')
 
     def get_graph_info(self, masks):
         num_vars = masks.size(-1)
@@ -89,7 +90,8 @@ class DNRI_DynamicVars(nn.Module):
                 current_p_logits = posterior_logits[:, edge_ind:edge_ind+num_edges]
             else:
                 current_p_logits = prior_logits[:, edge_ind:edge_ind+num_edges]
-            current_p_logits = current_p_logits.cuda(non_blocking=True)
+            if self.gpu:
+                current_p_logits = current_p_logits.cuda(non_blocking=True)
             edge_ind += num_edges
             predictions, decoder_hidden, edges = self.single_step_forward(current_inputs, current_node_masks, current_graph_info, decoder_hidden, current_p_logits, hard_sample)
             all_predictions.append(predictions)
@@ -99,7 +101,10 @@ class DNRI_DynamicVars(nn.Module):
         target_masks = ((node_masks[:, :-1] == 1)*(node_masks[:, 1:] == 1)).float()
         loss_nll = self.nll(all_predictions, target, target_masks)
         prob = F.softmax(posterior_logits, dim=-1)
-        loss_kl = self.kl_categorical_learned(prob.cuda(non_blocking=True), prior_logits.cuda(non_blocking=True))
+        if self.gpu:
+            prob = prob.cuda(non_blocking=True)
+            prior_logits = prior_logits.cuda(non_blocking=True)
+        loss_kl = self.kl_categorical_learned(prob, prior_logits)
         loss = loss_nll + self.kl_coef*loss_kl
         loss = loss.mean()
         if return_edges:
@@ -286,6 +291,7 @@ class DNRI_DynamicVars_Encoder(nn.Module):
         self.gpu_parallel = params.get('gpu_parallel', False)
         self.pool_edges = params.get('pool_edges', False)
         self.separate_prior_encoder = params.get('separate_prior_encoder', False)
+        self.gpu = params.get('gpu')
         no_bn = params['no_encoder_bn']
         dropout = params['encoder_dropout']
 
@@ -450,17 +456,22 @@ class DNRI_DynamicVars_Encoder(nn.Module):
         x_ind = 0
         for timestep in range(num_timesteps):
             current_node_masks = node_masks[:, timestep]
-            node_inds = all_node_inds[0][timestep].cuda(non_blocking=True)
+            node_inds = all_node_inds[0][timestep]
+            if self.gpu:
+                node_inds = node_inds.cuda(non_blocking=True)
             if len(node_inds) <= 1:
                 all_forward_states.append(torch.empty(1, 0, self.rnn_hidden_size, device=inputs.device))
                 all_x.append(None)
                 continue
             send_edges, recv_edges, _ = all_graph_info[0][timestep]
-            send_edges, recv_edges = send_edges.cuda(non_blocking=True), recv_edges.cuda(non_blocking=True)
+            if self.gpu:
+                send_edges, recv_edges = send_edges.cuda(non_blocking=True), recv_edges.cuda(non_blocking=True)
             global_send_edges = node_inds[send_edges]
             global_recv_edges = node_inds[recv_edges]
             global_edge_inds = global_send_edges*(max_num_vars-1) + global_recv_edges - (global_recv_edges >= global_send_edges).long()
-            current_x = x[x_ind:x_ind+len(global_send_edges)].cuda(non_blocking=True)
+            current_x = x[x_ind:x_ind+len(global_send_edges)]
+            if self.gpu:
+                current_x = current_x.cuda(non_blocking=True)
             x_ind += len(global_send_edges)
 
             old_shape = current_x.shape
@@ -478,21 +489,28 @@ class DNRI_DynamicVars_Encoder(nn.Module):
         x_ind = x.size(0)
         for timestep in range(num_timesteps-1, -1, -1):
             current_node_masks = node_masks[:, timestep]
-            node_inds = all_node_inds[0][timestep].cuda(non_blocking=True)
+            node_inds = all_node_inds[0][timestep]
+            if self.gpu:
+                node_inds = node_inds.cuda(non_blocking=True)
 
             if len(node_inds) <= 1:
                 continue
             send_edges, recv_edges, _ = all_graph_info[0][timestep]
-            send_edges, recv_edges = send_edges.cuda(non_blocking=True), recv_edges.cuda(non_blocking=True)
+            if self.gpu:
+                send_edges, recv_edges = send_edges.cuda(non_blocking=True), recv_edges.cuda(non_blocking=True)
             global_send_edges = node_inds[send_edges]
             global_recv_edges = node_inds[recv_edges]
             global_edge_inds = global_send_edges*(max_num_vars-1) + global_recv_edges - (global_recv_edges >= global_send_edges).long()
-            current_x = x[x_ind-len(global_send_edges):x_ind].cuda(non_blocking=True)
+            current_x = x[x_ind-len(global_send_edges):x_ind]
+            if self.gpu:
+                current_x = current_x.cuda(non_blocking=True)
             x_ind -= len(global_send_edges)
             old_shape = current_x.shape
             current_x = current_x.view(old_shape[-2], 1, old_shape[-1])
 
             current_state = (reverse_state[0][:, global_edge_inds], reverse_state[1][:, global_edge_inds])
+            current_x, current_state = self.reverse_rnn(current_x, current_state)
+
             tmp_state0 = reverse_state[0].clone()
             tmp_state0[:, global_edge_inds] = current_state[0]
             tmp_state1 = reverse_state[1].clone()
@@ -593,7 +611,8 @@ class DNRI_DynamicVars_Decoder(nn.Module):
         
         if num_vars > 1:
             send_edges, recv_edges, edge2node_inds = graph_info
-            send_edges, recv_edges, edge2node_inds = send_edges.cuda(non_blocking=True), recv_edges.cuda(non_blocking=True), edge2node_inds.cuda(non_blocking=True)
+            if self.gpu:
+                send_edges, recv_edges, edge2node_inds = send_edges.cuda(non_blocking=True), recv_edges.cuda(non_blocking=True), edge2node_inds.cuda(non_blocking=True)
             global_send_edges = node_inds[send_edges]
             global_recv_edges = node_inds[recv_edges]
             receivers = current_hidden[:, recv_edges]
