@@ -3,6 +3,8 @@ from . import decoders
 from . import nri
 from . import dnri
 from . import dnri_dynamicvars
+from . import recurrent_baselines
+from . import recurrent_baselines_dynamicvars
 import os
 
 
@@ -14,7 +16,13 @@ def build_model(params):
         else:
             model = dnri.DNRI(params)
         print("dNRI MODEL: ",model)
-
+    elif params['model_type'] == 'fc_baseline':
+        dynamic_vars = params.get('dynamic_vars', False)
+        if dynamic_vars:
+            model = recurrent_baselines_dynamicvars.FullyConnectedBaseline_DynamicVars(params)
+        else:
+            model = recurrent_baselines.FullyConnectedBaseline(params)
+        print("FCBaseline: ",model)
     else:
         num_vars = params['num_vars']
         graph_type = params['graph_type']

@@ -9,7 +9,7 @@ def build_flags():
     parser.add_argument('--load_model')
     parser.add_argument('--load_best_model', action='store_true')
     parser.add_argument('--continue_training', action='store_true')
-    parser.add_argument('--model_type', choices=['nri', 'dnri'])
+    parser.add_argument('--model_type', choices=['nri', 'dnri', 'fc_baseline'])
 
     # Training Params
     parser.add_argument('--num_epochs', type=int)
@@ -37,7 +37,7 @@ def build_flags():
     parser.add_argument('--prior_num_layers', type=int, default=1)
     parser.add_argument('--prior_hidden_size', type=int, default=256)
     parser.add_argument('--use_learned_prior', action='store_true')
-    parser.add_argument('--graph_type', choices=['static', 'dynamic'], required=True)
+    parser.add_argument('--graph_type', choices=['static', 'dynamic'])
     parser.add_argument('--avg_encoder_inputs', action='store_true')
     parser.add_argument('--use_dynamic_graph', action='store_true')
     parser.add_argument('--use_static_encoder', action='store_true')
