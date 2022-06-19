@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/jovyan/cvpr_dNRI/dnri/experiments/bball_experiment.py", line 34, in <module>
+    train_data = BasketballData(name, args.data_path, 'train', params, num_in_path=False, transpose_data=False, max_len=40)
+  File "/home/jovyan/cvpr_dNRI/dnri/datasets/bball_data.py", line 15, in __init__
+    loc_max, loc_min, vel_max, vel_min = self._get_normalize_stats()
+  File "/home/jovyan/cvpr_dNRI/dnri/datasets/bball_data.py", line 37, in _get_normalize_stats
+    train_loc = np.load(self._get_npy_path('loc', 'train'))
+  File "/opt/conda/lib/python3.9/site-packages/numpy/lib/npyio.py", line 416, in load
+    fid = stack.enter_context(open(os_fspath(file), "rb"))
+FileNotFoundError: [Errno 2] No such file or directory: 'data/bball//loc_train_bball.npy'

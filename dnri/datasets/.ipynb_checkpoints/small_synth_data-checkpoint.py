@@ -88,7 +88,7 @@ if __name__ == '__main__':
         current_edges = []
         for time_step in range(args.num_time_steps):
             current_edge = np.array([0,0,0,0,0,0])
-            # 12 13 21 23 31 32 - Yishai's note
+            # 12 13 21 23 31 32 - Yishai note
             
             current_edges.append(current_edge)
             if np.linalg.norm(p3_loc - p1_loc) < 1:
